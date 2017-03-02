@@ -1,0 +1,128 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.14393}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\b\f0\fs28\lang9 FULL CODE\par
+\b0\fs22 setwd("C:/Users/Archan/Desktop")               # set the path of the working directory  \par
+# QUESTION 1\par
+nyc_Gtaxi<-read.csv("green_tripdata_2015-09.csv")        # loading the  .csv file\par
+str(nyc_Gtaxi) \par
+# DATA CLEANING          \par
+
+\pard\sa200\sl276\slmult1\qj Neg_tip<-which(nyc_Gtaxi$Tip_amount<0)  \par
+Neg_total<-which(nyc_Gtaxi$Total_amount<0)\par
+Neg_fare<-which(nyc_Gtaxi$Fare_amount<0)\par
+Neg_distance<-which(nyc_Gtaxi$Trip_distance<0)\par
+\par
+time_pickup<-as.POSIXlt(nyc_Gtaxi[,2])\par
+time_dropoff<-as.POSIXlt(nyc_Gtaxi[,3])\par
+time_diff<-time_dropoff-time_pickup\par
+nyc_Gtaxi$Time_diff<-time_diff\par
+str(nyc_Gtaxi)\par
+Neg_timediff<-which(nyc_Gtaxi$Time_diff < 0)\par
+\par
+tip_greater<-which(nyc_Gtaxi$Tip_amount>nyc_Gtaxi$Total_amount)\par
+zero_distance<-which(nyc_Gtaxi$Trip_distance==0)\par
+zero_totalfare<-which(nyc_Gtaxi$Total_amount==0)\par
+\par
+more_passengers<-which(nyc_Gtaxi$Passenger_count>4)\par
+\par
+clean_data<-nyc_Gtaxi[-c ( Neg_tip , Neg_total , Neg_fare , tip_greater, zero_distance, zero_totalfare, more_passengers ) , ]\par
+\par
+nyc_Gtaxi<-clean_data                                                           # Putting the clean data back into nyc_Gtaxi\par
+detail <- summary(nyc_Gtaxi$Trip_distance)\par
+IQR_1 <- detail[5]-detail[2]\par
+HIGH_1<-detail [5]+(5*IQR_1)\par
+LOW_1 <-detail [2]-(5*IQR_1)\par
+Outlier_distance<-which(nyc_Gtaxi$Trip_distance<LOW_1| nyc_Gtaxi$Trip_distance>HIGH_1)\par
+\par
+detail <- summary(nyc_Gtaxi$Tip_amount)\par
+IQR_2 <- detail[5]-detail[2]\par
+HIGH_2 <-detail [5]+(5*IQR_1)\par
+LOW_2 <-detail [2]-(5*IQR_1)\par
+Outlier_tip<-which(nyc_Gtaxi$Tip_amount<LOW_2| nyc_Gtaxi$Tip_amount>HIGH_2)\par
+\par
+detail <- summary(nyc_Gtaxi$Fare_amount)\par
+IQR_3 <- detail[5]-detail[2]\par
+HIGH_3 <-detail [5]+(10*IQR_1)\par
+LOW_3 <-detail [2]-(10*IQR_1)\par
+Outlier_fare<-which(nyc_Gtaxi$Fare_amount<LOW_3| nyc_Gtaxi$Fare_amount>HIGH_3)\par
+\par
+detail <- summary(nyc_Gtaxi$Total_amount)\par
+IQR_4 <- detail[5]-detail[2]\par
+HIGH_4<-detail [5]+(10*IQR_1)\par
+LOW_4<-detail [2]-(10*IQR_1)\par
+Outlier_total<-which(nyc_Gtaxi$Total_amount<LOW_4| nyc_Gtaxi$Total_amount>HIGH_4)\par
+\par
+nyc_Gtaxi <- nyc_Gtaxi [ - c ( Outlier_distance , Outlier_tip , Outlier_fare , Outlier_total ) , ]\par
+\par
+# QUESTION 2\par
+
+\pard\sa200\sl240\slmult1 hist(nyc_Gtaxi$Trip_distance,xlim=c(0,20),breaks=500)\par
+hist(nyc_Gtaxi$Trip_distance,xlim=c(0,20),breaks=1000)\par
+hist(nyc_Gtaxi$Trip_distance,xlim=c(0,20),breaks=5000)\par
+
+\pard\sa200\sl276\slmult1\qj\par
+#QUESTION 3\par
+library(lubridate)\par
+HOUR<-hour(nyc_Gtaxi$lpep_pickup_datetime)\par
+str(HOUR)\par
+nyc_Gtaxi$Hour_of_day<-HOUR\par
+str(nyc_Gtaxi)\par
+Mean<-aggregate(nyc_Gtaxi$Trip_distance,list(nyc_Gtaxi$Hour_of_day),mean)\par
+Mean\par
+Median<-aggregate(nyc_Gtaxi$Trip_distance,list(nyc_Gtaxi$Hour_of_day),median)\par
+Median\par
+\par
+
+\pard\sa200\sl276\slmult1 Airport_trips<-subset(nyc_Gtaxi , RateCodeID==2 | RateCodeID==3)\par
+Airport_Total_Average<-mean(Airport_trips$Total_amount)\par
+Airport_Trip_distance<-mean(Airport_trips$Trip_distance)\par
+
+\pard\sa200\sl240\slmult1\qj\par
+occurence<-table(Airport_trips$Payment_type)\par
+occurence\par
+max(occurence)                                                        # get the maximum frequency\par
+which.max(occurence)                                          # get the payment type with maximum frequency\par
+
+\pard\sa200\sl276\slmult1 AIRPORT_HOUR<-hour(Airport_trips$lpep_pickup_datetime)\par
+Airport_trips$Hour_of_day<-AIRPORT_HOUR\par
+str(Airport_trips)\par
+Number_trips<-table(Airport_trips$Hour_of_day)\par
+Number_trips\par
+which.max(Number_trips) \par
+max(Number_trips)\par
+
+\pard\sa200\sl276\slmult1\qj\par
+# QUESTION 4\par
+tip_percent<-( nyc_Gtaxi$Tip_amount / nyc_Gtaxi$Total_amount ) *100\par
+nyc_Gtaxi$Tip_percent<-tip_percent\par
+str(nyc_Gtaxi)\par
+plot(nyc_Gtaxi$Tip_percent)\par
+\b\fs24\par
+\b0\fs22 Cash_records<-which(nyc_Gtaxi$Payment_type==2)\par
+NonCash_records<-nyc_Gtaxi[-Cash_records,]\par
+\par
+
+\pard\sa200\sl240\slmult1\qj # removing the columns using column number\par
+NonCash_records<-NonCash_records[-c(1,2,3,4,6,7,8,9,14,16,17,18,22,23)] \par
+str(NonCash_records)\par
+\par
+
+\pard\sa200\sl276\slmult1\qj train_size<-floor(0.75*nrow(NonCash_records))\par
+train_ind <- sample(seq_len(nrow(NonCash_records)), size = train_size)\par
+train <- NonCash_records[train_ind, ]\par
+test <- NonCash_records[-train_ind, ]\par
+# Now, we will remove high Tip_percent values (Tip_percent>70)\par
+train<-train[-which(train$Tip_percent>70),]\par
+\par
+training_set<-train[1:10000,]\par
+library(e1071)\par
+model_SVM<-svm(Tip_percent~Tip_amount+Payment_type+Fare_amount,data=training_set)\par
+predict_value <- predict(model_SVM, training_set)\par
+\par
+SSE<-sum((training_set$Tip_percent-predict_value)^2)\par
+SST<-sum((training_set$Tip_percent-mean(training_set$Tip_percent))^2)\par
+1-(SSE/SST)\par
+
+\pard\sa200\sl276\slmult1 print("End of Code")\par
+}
+�
